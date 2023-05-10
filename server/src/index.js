@@ -115,44 +115,33 @@ io.on("connection", (socket) => {
     const { gameId } = data;
     // Get the game
     const game = getGame(gameId);
-    // FIXME: check if game is valid and move is valid
-
-    // update the board
     const { playBoard = [], player1 } = game;
 
-    // Update the game object
     game.playerTurn = player1;
     game.playBoard = Array(9).fill(null);
     game.status = "fulfilled";
     game.winner = null;
     updateGame(game);
 
-    // Brodcast game update to everyone
     io.in(gameId).emit("gameUpdated", { game });
   });
 
   socket.on("moveMade", (data) => {
     const { player, square, gameId } = data;
-    // Get the game
-    const game = getGame(gameId);
-    // FIXME: check if game is valid and move is valid
 
-    // update the board
+    const game = getGame(gameId);
+
     const { playBoard = [], playerTurn, player1, player2 } = game;
     playBoard[square] = player.symbol;
 
-    // update the player turn
     const nextTurnId = playerTurn === player1 ? player2 : player1;
 
-    // Update the game object
     game.playerTurn = nextTurnId;
     game.playBoard = playBoard;
     updateGame(game);
 
-    // Brodcast game update to everyone
     io.in(gameId).emit("gameUpdated", { game });
 
-    // Check winning status or Draw
     const hasWon = checkWinner(playBoard);
     if (hasWon) {
       const winner = { ...hasWon, player };
@@ -163,7 +152,6 @@ io.on("connection", (socket) => {
       return;
     }
 
-    // Checking Draw
     const emptySquareIndex = playBoard.findIndex((item) => item === null);
     if (emptySquareIndex === -1) {
       game.status = "gameOver";
